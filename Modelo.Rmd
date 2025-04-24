@@ -1,6 +1,8 @@
 ```{r}
 library(tidyquant)
 library(ggplot2)
+library(reshape2)
+library(scales)
 library(zoo)
 library(dplyr)
 ```
@@ -67,10 +69,45 @@ colunas_para_remover <- c("open", "high", "low", "close", "adjusted")
 matriz_cor_filtrada <- matriz_cor[!rownames(matriz_cor) %in% colunas_para_remover, 
                                  !colnames(matriz_cor) %in% colunas_para_remover]
 
-heatmap(matriz_cor_filtrada, 
-        main = "Heatmap de Correlações",
-        col = colorRampPalette(c("blue", "white", "red"))(100),
-        scale = "none", 
-        margins = c(7, 7))
+# Transformando a matriz em um data.frame longo
+df_cor <- melt(matriz_cor_filtrada)
+
+# Renomeando colunas para facilitar
+colnames(df_cor) <- c("Var1", "Var2", "Correlacao")
+
+max_cor <- max(df_cor$Correlacao, na.rm = TRUE)
+min_cor <- min(df_cor$Correlacao, na.rm = TRUE)
+
+# Plot
+ggplot(df_cor, aes(x = Var2, y = Var1, fill = Correlacao)) +
+  geom_tile(color = "white") +  # borda entre os quadrados
+  geom_text(aes(label = round(Correlacao, 2)), size = 3, color = "white") +
+  scale_fill_gradient2(low = "red", mid = "brown", high = "blue", 
+                       midpoint = 0, limit = c(min_cor, max_cor), 
+                       name = "Correlação") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        panel.grid = element_blank(),
+        plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+  labs(title = "Heatmap de Correlações")
 ```
 
+```{r}
+btc_data[btc_data == Inf | btc_data == -Inf] <- NA
+btc_model <- btc_data
+btc_model <- na.omit(btc_model)
+
+```
+
+```{r}
+begin_train <- as.Date("2015-01-01")
+end_train <- as.Date("2020-12-31")
+
+test_begin <- as.Date("2021-01-01")
+end_test <- Sys.Date() -1
+
+btc_test <- btc_model[btc_model$date >= as.Date(begin_train) & btc_model$date <= as.Date(end_train)]
+
+```
