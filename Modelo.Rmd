@@ -1,0 +1,14 @@
+```{r}
+install.packages("tidyquant")
+library(tidyquant)
+```
+
+```{r}
+initial_date <- as.Date("2015-01-01")
+final_date <- Sys.Date()
+
+btc_data <- tq_get("BTC-USD", from = initial_date, to = final_date)
+
+head(btc_data)
+```
+
