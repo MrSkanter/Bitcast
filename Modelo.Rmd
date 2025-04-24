@@ -1,14 +1,76 @@
 ```{r}
-install.packages("tidyquant")
 library(tidyquant)
+library(ggplot2)
+library(zoo)
+library(dplyr)
 ```
 
 ```{r}
-initial_date <- as.Date("2015-01-01")
-final_date <- Sys.Date()
+ticker <- "BTC-USD"
+initial_date <- as.Date("2010-01-01")
+final_date <- as.Date("2022-01-01")
 
-btc_data <- tq_get("BTC-USD", from = initial_date, to = final_date)
+btc_data <- tq_get(ticker, from = initial_date, to = final_date)
 
-head(btc_data)
+btc_data <- as.data.frame(btc_data)
+
+ggplot(btc_data, aes(x = date, y = adjusted)) +
+  geom_line(color = "steelblue", size = 1) +
+  labs(
+    title = "Cotação Histórica", ticker,
+    subtitle = "",
+    x = "Data",
+    y = "Preço de Fechamento (USD)"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+periodo <- 5
+
+btc_data$Retorno <- c(NA, diff(btc_data$adjusted) / head(btc_data$adjusted, -1) * 100)
+
+btc_data$Retorno_p <- c(rep(NA, periodo), diff(btc_data$adjusted, lag = periodo) / head(btc_data$adjusted, -periodo) * 100)
+
+btc_data$Retorno_p <- rollapply(btc_data$Retorno_p, width = 10, FUN = mean, fill = NA, align = "right")
+
+btc_data$Proporcao <- (btc_data$adjusted - btc_data$open)/(btc_data$high - btc_data$low)
+
+btc_data$Desvio <- rollapply(btc_data$Retorno, width = 5, FUN = sd, fill = NA, align = "right")
+
+btc_data$Alvo <- lead(btc_data$Desvio, n = periodo)
+
+```
+
+```{r}
+
+ggplot(data = data.frame(btc_data$Alvo), aes(x = btc_data$Alvo)) +
+  geom_histogram(binwidth = 0.5, fill = "blue", color = "black") +
+  labs(title = "Distribuição de Volatilidade", x = "Valores", y = "Frequência")
+
+```
+
+```{r}
+colunas_numericas <- names(btc_data)[sapply(btc_data, is.numeric)]
+
+matriz_cor <- cor(btc_data[, colunas_numericas], use = "complete.obs")
+
+correl <- matriz_cor[, "Alvo"]
+
+correl <- correl[!names(correl) %in% c("open", "high", "low", "close", "adjusted", "Alvo")]
+
+print(correl)
+```
+
+```{r}
+colunas_para_remover <- c("open", "high", "low", "close", "adjusted")
+matriz_cor_filtrada <- matriz_cor[!rownames(matriz_cor) %in% colunas_para_remover, 
+                                 !colnames(matriz_cor) %in% colunas_para_remover]
+
+heatmap(matriz_cor_filtrada, 
+        main = "Heatmap de Correlações",
+        col = colorRampPalette(c("blue", "white", "red"))(100),
+        scale = "none", 
+        margins = c(7, 7))
 ```
 

@@ -29,7 +29,8 @@ Tentativa de construir um modelo preditivo aplicado ao mercado de criptomoedas, 
 | Módulo           | Funcionalidades Principais                     | Status       |  
 |------------------|-----------------------------------------------|-------------|  
 | **API REST**     | Previsões em tempo real, documentação Swagger | Planejado   |  
-| **Telegram Bot** | Alertas automáticos, histórico de previsões   | Em design   |  
+| **Telegram Bot** | Alertas automáticos, histórico de previsões   | Em design   |
+
 **Atenção**: Projeto com fins educacionais, não recomendado para decisões financeiras reais.
 
 ## 🎯 Objetivos  
