@@ -29,7 +29,7 @@ Tentativa de construir um modelo preditivo aplicado ao mercado de criptomoedas, 
 | Módulo           | Funcionalidades Principais                     | Status       |  
 |------------------|-----------------------------------------------|-------------|  
 | **API REST**     | Previsões em tempo real, documentação Swagger | Planejado   |  
-| **Telegram Bot** | Alertas automáticos, histórico de previsões   | Em design   |
+| **Telegram Bot** | Alertas automáticos, histórico de previsões   | Planejado   |
 
 **Atenção**: Projeto com fins educacionais, não recomendado para decisões financeiras reais.
 
@@ -84,7 +84,7 @@ Obs: estamos trabalhando a Volatilidade do Retorno
 | `high` | Máxima do dia | Float |
 | `low` | Mínima do dia | Float |
 | `close` | Preço de fechamento | Float |
-| `adjusted_close` | Fechamento ajustado | Float |
+| `adjusted` | Fechamento ajustado | Float |
 
 ### **Pré-processamento**
 1. Download automático com pacote do Yahoo Finance
