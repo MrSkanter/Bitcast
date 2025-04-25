@@ -1,25 +1,30 @@
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(tidyquant)
 library(ggplot2)
 library(reshape2)
 library(scales)
 library(zoo)
 library(dplyr)
+library(Metrics)
+library(broom)
+library(dplyr)
+library(patchwork)
+
 ```
 
 ```{r}
 ticker <- "BTC-USD"
-initial_date <- as.Date("2010-01-01")
-final_date <- as.Date("2022-01-01")
+initial_date <- as.Date("2015-01-01")
+final_date <- Sys.Date() -1
 
 btc_data <- tq_get(ticker, from = initial_date, to = final_date)
 
 btc_data <- as.data.frame(btc_data)
 
 ggplot(btc_data, aes(x = date, y = adjusted)) +
-  geom_line(color = "steelblue", size = 1) +
+  geom_line(color = "steelblue", linewidth = 1) +
   labs(
-    title = "Cotação Histórica", ticker,
+    title = paste("Cotação Histórica", ticker),
     subtitle = "",
     x = "Data",
     y = "Preço de Fechamento (USD)"
@@ -44,7 +49,7 @@ btc_data$Alvo <- lead(btc_data$Desvio, n = periodo)
 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 
 ggplot(data = data.frame(btc_data$Alvo), aes(x = btc_data$Alvo)) +
   geom_histogram(binwidth = 0.5, fill = "blue", color = "black") +
@@ -69,16 +74,14 @@ colunas_para_remover <- c("open", "high", "low", "close", "adjusted")
 matriz_cor_filtrada <- matriz_cor[!rownames(matriz_cor) %in% colunas_para_remover, 
                                  !colnames(matriz_cor) %in% colunas_para_remover]
 
-# Transformando a matriz em um data.frame longo
 df_cor <- melt(matriz_cor_filtrada)
 
-# Renomeando colunas para facilitar
 colnames(df_cor) <- c("Var1", "Var2", "Correlacao")
 
 max_cor <- max(df_cor$Correlacao, na.rm = TRUE)
 min_cor <- min(df_cor$Correlacao, na.rm = TRUE)
 
-# Plot
+
 ggplot(df_cor, aes(x = Var2, y = Var1, fill = Correlacao)) +
   geom_tile(color = "white") +  # borda entre os quadrados
   geom_text(aes(label = round(Correlacao, 2)), size = 3, color = "white") +
@@ -98,7 +101,7 @@ ggplot(df_cor, aes(x = Var2, y = Var1, fill = Correlacao)) +
 btc_data[btc_data == Inf | btc_data == -Inf] <- NA
 btc_model <- btc_data
 btc_model <- na.omit(btc_model)
-
+btc_model$date <- as.Date(btc_model$date)
 ```
 
 ```{r}
@@ -108,6 +111,169 @@ end_train <- as.Date("2020-12-31")
 test_begin <- as.Date("2021-01-01")
 end_test <- Sys.Date() -1
 
-btc_test <- btc_model[btc_model$date >= as.Date(begin_train) & btc_model$date <= as.Date(end_train)]
+btc_train <- btc_model %>%
+  filter(date >= as.Date(begin_train) & date <= as.Date(end_train))
+
+btc_test <- btc_model %>%
+  filter(date >= test_begin & date <= end_test)
+
+x_train <- btc_train %>%
+  select(volume, Retorno, Retorno_p, Proporcao, Desvio)
+y_train <- btc_train %>%
+  select(Alvo)
+
+x_test <- btc_test %>%
+  select(volume, Retorno, Retorno_p, Proporcao, Desvio)
+y_test <- btc_test %>%
+  select(Alvo)
 
 ```
+
+```{r}
+modelo <- lm(y_train$Alvo ~ volume + Retorno + Retorno_p + Proporcao + Desvio, data = x_train)
+
+y_pred_train <- predict(modelo, newdata = x_train)
+y_pred_test <- predict(modelo, newdata = x_test)
+
+summary(modelo)
+```
+
+```{r}
+result <- data.frame(Data = c(btc_test$date),
+                     Alvo = c(y_test),
+                     Previsto = c(y_pred_test))
+
+result$Real_lag <- lag(result$Alvo, n = 1)
+result$Prev_lag <- lag(result$Previsto, n = 1)
+result$Real_dir <- ifelse(result$Alvo > result$Real_lag, 1, 0)
+result$Prev_dir <- ifelse(result$Previsto > result$Prev_lag, 1, 0)
+result$Real_cat <- ifelse(result$Alvo > 3.086029, 1, 0)
+result$Prev_cat <- ifelse(result$Previsto > 3.086029, 1, 0)
+
+print(result)
+```
+
+```{r}
+ggplot(result, aes(x = Previsto, y = Alvo)) +
+  geom_point(color = "blue") + 
+  labs(
+    x = "Volatilidade prevista",   
+    y = "Volatilidade real",      
+    title = paste("Volatilidade", ticker, "- Real x Previsto") 
+  ) +
+  theme_minimal() +  
+  theme(legend.position = "none") 
+```
+
+```{r}
+ggplot(result, aes(x = Data)) +
+  geom_line(aes(y = Alvo, color = "Alvo"), size = 1) +
+  geom_line(aes(y = Previsto, color = "Prevista"), linetype = "dashed", size = 1) +
+  scale_color_manual(values = c("Alvo" = "red", "Prevista" = "blue")) +
+  labs(
+    title = paste("Volatilidade", ticker, "- Regressão Linear"),
+    x = "Ano",
+    y = "Volatilidade",
+    color = NULL
+  ) +
+  theme_minimal(base_size = 20) +
+  theme(
+    legend.position = "top",
+    legend.box.background = element_rect(color = "black", fill = "white", size = 0.5),
+    legend.box.margin = margin(6, 6, 6, 6),
+    legend.background = element_blank(),
+    legend.key = element_blank()
+  )
+
+```
+
+```{r}
+MAE_train <- mae(y_train$Alvo, y_pred_train)
+RMSE_train <- rmse(y_train$Alvo, y_pred_train)
+R2_train <- summary(modelo)$r.squared
+
+cat("----- Avaliação do Treinamento -----\n")
+cat(sprintf("MAE :  %.3f\n", MAE_train))
+cat(sprintf("R²   :  %.3f\n", R2_train))
+cat(sprintf("RMSE:  %.3f\n", RMSE_train))
+
+MAE_test <- mae(y_test$Alvo, y_pred_test)
+RMSE_test <- rmse(y_test$Alvo, y_pred_test)
+
+cat("\n----- Avaliação do Teste -----\n")
+cat(sprintf("MAE :  %.3f\n", MAE_test))
+cat(sprintf("RMSE:  %.3f\n", RMSE_test))
+```
+```{r}
+cat("\nA Volatilidade média da base é: ", round(mean(y_test$Alvo), 3))
+cat("\n")
+cat("\nO percentual do MAE em relação à média da base: ", round(mean(abs(y_test$Alvo - y_pred_test)) / mean(y_test$Alvo) * 100, 3))
+
+```
+```{r}
+round(prop.table(table(result$Prev_dir, result$Real_dir), 1) * 100, 2)
+```
+```{r}
+round(prop.table(table(result$Prev_cat, result$Real_cat), 1) * 100, 2)
+```
+```{r}
+print(modelo$coefficients)
+```
+```{r}
+cat("Primeiros 5 resíduos:\n")
+print(head(modelo$residuals, 5))
+
+cat("\nÚltimos 5 resíduos:\n")
+print(tail(modelo$residuals, 5))
+```
+```{r}
+ggplot(modelo, aes(x = modelo$residuals, y = modelo$fitted.values)) +
+  geom_point(color = "blue") + 
+  labs(
+    x = "Residuos",   
+    y = "Valores Fitted",      
+    title = paste("Volatilidade - Residuos x Fitted Values") 
+  ) +
+  theme_minimal() +  
+  theme(legend.position = "none") 
+```
+```{r}
+qqnorm(modelo$residuals, main = "Q-Q Plot dos Resíduos")
+qqline(modelo$residuals, col = "blue", lwd = 2)
+```
+```{r}
+
+resposta <- "Alvo"
+
+variaveis <- c("volume", "Retorno", "Retorno_p", "Proporcao", "Desvio")
+
+dados <- cbind(y_train, x_train)
+
+partial_plot <- function(resp, var, dados, preditoras) {
+  outras_vars <- setdiff(preditoras, var)
+  
+  formula_y <- as.formula(paste(resp, "~", paste(outras_vars, collapse = " + ")))
+  formula_x <- as.formula(paste(var, "~", paste(outras_vars, collapse = " + ")))
+  
+  res_y <- resid(lm(formula_y, data = dados))
+  res_x <- resid(lm(formula_x, data = dados))
+  
+  df_res <- data.frame(res_x = res_x, res_y = res_y)
+  
+  ggplot(df_res, aes(x = res_x, y = res_y)) +
+    geom_point(color = "steelblue", size = 2) +
+    geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "darkred") +
+    labs(
+      title = paste("Regr", var),
+      x = paste("Res", var),
+      y = paste("Res", resp)
+    ) +
+    theme_minimal()
+}
+
+plots <- lapply(variaveis, function(v) partial_plot("Alvo", v, dados, variaveis))
+
+wrap_plots(plots)
+
+```
+
