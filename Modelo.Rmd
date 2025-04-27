@@ -141,12 +141,14 @@ result <- data.frame(Data = c(btc_test$date),
                      Alvo = c(y_test),
                      Previsto = c(y_pred_test))
 
+vola_mean <- mean(result$Alvo)
+
 result$Real_lag <- lag(result$Alvo, n = 1)
 result$Prev_lag <- lag(result$Previsto, n = 1)
 result$Real_dir <- ifelse(result$Alvo > result$Real_lag, 1, 0)
 result$Prev_dir <- ifelse(result$Previsto > result$Prev_lag, 1, 0)
-result$Real_cat <- ifelse(result$Alvo > 3.086029, 1, 0)
-result$Prev_cat <- ifelse(result$Previsto > 3.086029, 1, 0)
+result$Real_cat <- ifelse(result$Alvo > vola_mean, 1, 0)
+result$Prev_cat <- ifelse(result$Previsto > vola_mean, 1, 0)
 
 print(result)
 ```
