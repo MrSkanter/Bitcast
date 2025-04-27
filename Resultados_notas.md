@@ -103,7 +103,7 @@ Como pode ser facilmente observado, os pontos se afastam significativamente da l
 ## Gráficos Parciais
 ![Partial Plots](graficos/partial_plots.png)
 
-Esse é uma grade de Gráficos de Regressão Pacial para cada uma das variaveis preditoras que utilizamos, cada grafico tenta visualizar a relação entre a variável Y e uma unica variavel X, após remover todas as outras variáveis preditoras do modelo.
+Esse é uma grade de Gráficos de Regressão Parcial para cada uma das variaveis preditoras que utilizamos, cada grafico tenta visualizar a relação entre a variável Y e uma unica variavel X, após remover todas as outras variáveis preditoras do modelo.
 
 Dos graficos observados, somente o Desvio parece demosntrar uma boa relação linear parcial clara e positiva com a nossa variavel Y neste modelo.
 
