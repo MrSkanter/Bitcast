@@ -8,10 +8,9 @@ library(dplyr)
 library(Metrics)
 library(broom)
 library(patchwork)
-
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ticker <- "BTC-USD"
 initial_date <- as.Date("2015-01-01")
 final_date <- Sys.Date() -1
@@ -164,10 +163,10 @@ ggplot(result, aes(x = Previsto, y = Alvo)) +
   theme(legend.position = "none") 
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 ggplot(result, aes(x = Data)) +
   geom_line(aes(y = Alvo, color = "Alvo"), size = 1) +
-  geom_line(aes(y = Previsto, color = "Prevista"), linetype = "dashed", size = 1) +
+  geom_line(aes(y = Previsto, color = "Prevista"),size = 1) +
   scale_color_manual(values = c("Alvo" = "red", "Prevista" = "blue")) +
   labs(
     title = paste("Volatilidade", ticker, "- Regressão Linear"),
@@ -203,21 +202,26 @@ cat("\n----- Avaliação do Teste -----\n")
 cat(sprintf("MAE :  %.3f\n", MAE_test))
 cat(sprintf("RMSE:  %.3f\n", RMSE_test))
 ```
+
 ```{r}
 cat("\nA Volatilidade média da base é: ", round(mean(y_test$Alvo), 3))
 cat("\n")
 cat("\nO percentual do MAE em relação à média da base: ", round(mean(abs(y_test$Alvo - y_pred_test)) / mean(y_test$Alvo) * 100, 3))
 
 ```
+
 ```{r}
 round(prop.table(table(result$Prev_dir, result$Real_dir), 1) * 100, 2)
 ```
+
 ```{r}
 round(prop.table(table(result$Prev_cat, result$Real_cat), 1) * 100, 2)
 ```
+
 ```{r}
 print(modelo$coefficients)
 ```
+
 ```{r}
 cat("Primeiros 5 resíduos:\n")
 print(head(modelo$residuals, 5))
@@ -225,6 +229,7 @@ print(head(modelo$residuals, 5))
 cat("\nÚltimos 5 resíduos:\n")
 print(tail(modelo$residuals, 5))
 ```
+
 ```{r}
 ggplot(modelo, aes(x = modelo$residuals, y = modelo$fitted.values)) +
   geom_point(color = "blue") + 
@@ -236,10 +241,12 @@ ggplot(modelo, aes(x = modelo$residuals, y = modelo$fitted.values)) +
   theme_minimal() +  
   theme(legend.position = "none") 
 ```
+
 ```{r}
 qqnorm(modelo$residuals, main = "Q-Q Plot dos Resíduos")
 qqline(modelo$residuals, col = "blue", lwd = 2)
 ```
+
 ```{r}
 
 resposta <- "Alvo"
