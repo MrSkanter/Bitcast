@@ -24,9 +24,7 @@ A matriz mostra o grau de correlação linear entre todas as variáveis que eu u
 
 A regressão linear foi realizada com a fórmula:
 
-\[
-\text{Alvo} \sim \text{volume} + \text{Retorno} + \text{Retorno\_p} + \text{Proporcao} + \text{Desvio}
-\]
+Alvo ~ Volume + Retorno + Retorno_p + Proporção + Desvio
 
 #### Resíduos:
 
