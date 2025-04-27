@@ -1,8 +1,8 @@
-# Projeto de Aprendizado: Regressão Linear com Dados do Bitcoin
+# Projeto de Aprendizado: Regressão Linear com Dados de Bitcoin
 
 ## 🎯 Objetivo
 
-Este projeto foi desenvolvido como um exercício de aprendizado pessoal. O principal objetivo é aplicar e entender os passos básicos para implementar um modelo de Regressão Linear em R, utilizando dados financeiros reais (cotação do Bitcoin). **Não é um guia ou tutorial, apenas um registro do meu processo de estudo.**
+Este projeto foi desenvolvido como um exercício de aprendizado pessoal. O principal objetivo é aplicar e entender os passos básicos para implementar um modelo de Regressão Linear em R, utilizando dados financeiros reais (cotação do Bitcoin).
 
 ## 📖 Descrição
 
@@ -52,7 +52,7 @@ O código neste repositório realiza as seguintes etapas:
     ```
 3.  Execute o script R fornecido.
 
-## ⚠️ Observações Importantes
+## ⚠️ Observações
 
 * Este é um projeto **estritamente educacional** para praticar conceitos de regressão linear.
 * O modelo gerado **não tem a intenção de ser usado para previsões financeiras reais** ou tomadas de decisão de investimento. Modelos financeiros reais exigem muito mais complexidade, validação rigorosa e consideração de outros fatores.
