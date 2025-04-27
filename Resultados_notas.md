@@ -16,7 +16,7 @@ O objetivo aqui é entender se a volatilidade tem distribuição normal, se é s
 ## Heatmap de Correlações
 ![Heatmap de Correlações](graficos/heatmap_correlacoes.png)
 
-A matriz mostra o grau de correlação linear entre todas as variáveis que eu utilizei na modelagem da volatilidade do Bitcoin. Cada valor na matriz representa a correlação entre duas variáveis específicas.
+A matriz mostra o grau de correlação linear entre todas as variáveis que utilizamos na modelagem da volatilidade do Bitcoin. Cada valor na matriz representa a correlação entre duas variáveis específicas.
 
 ## 
 
@@ -24,7 +24,9 @@ A matriz mostra o grau de correlação linear entre todas as variáveis que eu u
 
 A regressão linear foi realizada com a fórmula:
 
-Alvo ~ Volume + Retorno + Retorno_p + Proporção + Desvio
+$$
+y \sim x_1 + x_2 + x_3 + x_4 + x_5
+$$
 
 #### Resíduos:
 
